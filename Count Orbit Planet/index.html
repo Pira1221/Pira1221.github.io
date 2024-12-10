@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kalkulator orbit planet Neptunus menggunakan metode numerik.">
+    <title>Kalkulator Orbit Neptunus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        header {
+            background-color: #000000;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+        }
+        header img {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #24a6e2;
+            border: 1px solid #029aff;
+            border-radius: 5px;
+        }
+        .result img {
+            width: 50px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #f50505;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #006bb3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="/GAMBAR/Neptune.jpeg" alt="Gambar Neptunus">
+        <h1>Kalkulator Orbit Neptunus</h1>
+        <p>Hitung posisi orbit Neptunus menggunakan metode numerik sederhana</p>
+    </header>
+    <main>
+        <div class="form-group">
+            <label for="waktu">Waktu (tahun):</label>
+            <input type="number" id="waktu" placeholder="Masukkan waktu dalam tahun" required>
+        </div>
+        <button id="hitung">Hitung Orbit</button>
+        <div id="output" class="result" style="display: none;">
+            <p><strong>Hasil:</strong></p>
+            <p id="hasil-orbit"></p>
+            <img src="" alt="Orbit Neptunus">
+        </div>
+    </main>
+
+    <script>
+        // Konstanta untuk perhitungan orbit
+        const G = 6.67430e-11; // Gravitasi universal (m^3/kg/s^2)
+        const M = 1.989e30; // Massa Matahari (kg)
+        const AU = 1.496e11; // 1 AU dalam meter
+        const R = 30.1 * AU; // Jarak rata-rata Neptunus dari Matahari dalam meter
+        const T_ORBIT = 165; // Periode orbit Neptunus (tahun)
+
+        // Fungsi untuk menghitung posisi orbit
+        function hitungOrbit(t) {
+            // Sudut posisi orbit (theta) dalam radian
+            const theta = (2 * Math.PI * t) / T_ORBIT;
+
+            // Koordinat Neptunus dalam orbit (x, y)
+            const x = R * Math.cos(theta);
+            const y = R * Math.sin(theta);
+
+            return { x, y };
+        }
+
+        // Event listener untuk tombol "Hitung Orbit"
+        document.getElementById('hitung').addEventListener('click', () => {
+            const waktuInput = document.getElementById('waktu').value;
+            const waktu = parseFloat(waktuInput);
+
+            if (isNaN(waktu) || waktu < 0) {
+                alert('Masukkan nilai waktu yang valid!');
+                return;
+            }
+
+            const posisi = hitungOrbit(waktu);
+            const hasilHTML = `
+                <strong>Posisi Neptunus:</strong>
+                <br>X: ${posisi.x.toFixed(2)} meter
+                <br>Y: ${posisi.y.toFixed(2)} meter
+            `;
+
+            const outputDiv = document.getElementById('output');
+            const hasilOrbitDiv = document.getElementById('hasil-orbit');
+
+            hasilOrbitDiv.innerHTML = hasilHTML;
+            outputDiv.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
