@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Kalkulator orbit planet Neptunus menggunakan metode numerik.">
-    <title>Kalkulator Orbit Neptunus</title>
+    <meta name="description" content="Kalkulator dan simulasi orbit planet Neptunus.">
+    <title>Simulasi Orbit Neptunus</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,16 +41,11 @@
             padding: 8px;
             box-sizing: border-box;
         }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #24a6e2;
-            border: 1px solid #029aff;
-            border-radius: 5px;
-        }
-        .result img {
-            width: 50px;
-            margin-top: 10px;
+        canvas {
+            display: block;
+            margin: 20px auto;
+            background-color: #000;
+            border: 1px solid #fff;
         }
         button {
             background-color: #f50505;
@@ -68,43 +63,100 @@
 <body>
     <header>
         <img src="/GAMBAR/Neptune.jpeg" alt="Gambar Neptunus">
-        <h1>Kalkulator Orbit Neptunus</h1>
-        <p>Hitung posisi orbit Neptunus menggunakan metode numerik sederhana</p>
+        <h1>Simulasi Orbit Neptunus</h1>
+        <p>Hitung dan visualisasikan orbit Neptunus menggunakan metode Euler</p>
     </header>
     <main>
         <div class="form-group">
             <label for="waktu">Waktu (tahun):</label>
             <input type="number" id="waktu" placeholder="Masukkan waktu dalam tahun" required>
         </div>
-        <button id="hitung">Hitung Orbit</button>
-        <div id="output" class="result" style="display: none;">
-            <p><strong>Hasil:</strong></p>
-            <p id="hasil-orbit"></p>
-            <img src="" alt="Orbit Neptunus">
-        </div>
+        <button id="hitung">Simulasikan Orbit</button>
+        <canvas id="simulasi" width="800" height="800"></canvas>
     </main>
 
     <script>
         // Konstanta untuk perhitungan orbit
         const G = 6.67430e-11; // Gravitasi universal (m^3/kg/s^2)
-        const M = 1.989e30; // Massa Matahari (kg)
-        const AU = 1.496e11; // 1 AU dalam meter
-        const R = 30.1 * AU; // Jarak rata-rata Neptunus dari Matahari dalam meter
-        const T_ORBIT = 165; // Periode orbit Neptunus (tahun)
+        const M = 1.989e30;   // Massa Matahari (kg)
+        const AU = 1.496e11;  // 1 AU dalam meter
+        const R = 30.1 * AU;  // Jarak rata-rata Neptunus dari Matahari dalam meter
+        const T_ORBIT = 165;  // Periode orbit Neptunus (tahun)
+        const dt = 365 * 24 * 60 * 60; // Langkah waktu (1 hari dalam detik)
+        const SCALE = 1e9;    // Skala untuk menggambar orbit
 
-        // Fungsi untuk menghitung posisi orbit
-        function hitungOrbit(t) {
-            // Sudut posisi orbit (theta) dalam radian
-            const theta = (2 * Math.PI * t) / T_ORBIT;
+        // Fungsi metode Euler
+        function hitungOrbitEuler(totalTahun) {
+            const totalWaktu = totalTahun * 365 * 24 * 60 * 60; // Total waktu dalam detik
+            let x = R; // Posisi awal di sumbu x
+            let y = 0; // Posisi awal di sumbu y
+            let vx = 0; // Kecepatan awal di sumbu x
+            let vy = Math.sqrt(G * M / R); // Kecepatan awal di sumbu y
 
-            // Koordinat Neptunus dalam orbit (x, y)
-            const x = R * Math.cos(theta);
-            const y = R * Math.sin(theta);
+            const hasil = [];
+            for (let t = 0; t <= totalWaktu; t += dt) {
+                // Perhitungan gaya gravitasi
+                const r = Math.sqrt(x * x + y * y); // Jarak ke pusat
+                const ax = -(G * M * x) / (r * r * r); // Percepatan di x
+                const ay = -(G * M * y) / (r * r * r); // Percepatan di y
 
-            return { x, y };
+                // Update kecepatan dan posisi (Metode Euler)
+                vx += ax * dt;
+                vy += ay * dt;
+                x += vx * dt;
+                y += vy * dt;
+
+                // Simpan posisi untuk visualisasi
+                hasil.push({ x, y });
+            }
+
+            return hasil;
         }
 
-        // Event listener untuk tombol "Hitung Orbit"
+        // Fungsi untuk menggambar orbit
+        function gambarOrbit(data) {
+            const canvas = document.getElementById('simulasi');
+            const ctx = canvas.getContext('2d');
+
+            // Bersihkan canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Pusatkan Matahari
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Gambar Matahari
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI); // Matahari kecil di pusat
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+
+            // Gambar lintasan orbit
+            ctx.beginPath();
+            data.forEach((pos, index) => {
+                const x = centerX + pos.x / SCALE;
+                const y = centerY + pos.y / SCALE;
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.strokeStyle = 'cyan';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Gambar Neptunus pada posisi terakhir
+            const terakhir = data[data.length - 1];
+            const x = centerX + terakhir.x / SCALE;
+            const y = centerY + terakhir.y / SCALE;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI); // Neptunus
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+        }
+
+        // Event listener untuk tombol "Simulasikan Orbit"
         document.getElementById('hitung').addEventListener('click', () => {
             const waktuInput = document.getElementById('waktu').value;
             const waktu = parseFloat(waktuInput);
@@ -114,18 +166,8 @@
                 return;
             }
 
-            const posisi = hitungOrbit(waktu);
-            const hasilHTML = `
-                <strong>Posisi Neptunus:</strong>
-                <br>X: ${posisi.x.toFixed(2)} meter
-                <br>Y: ${posisi.y.toFixed(2)} meter
-            `;
-
-            const outputDiv = document.getElementById('output');
-            const hasilOrbitDiv = document.getElementById('hasil-orbit');
-
-            hasilOrbitDiv.innerHTML = hasilHTML;
-            outputDiv.style.display = 'block';
+            const posisi = hitungOrbitEuler(waktu);
+            gambarOrbit(posisi);
         });
     </script>
 </body>
